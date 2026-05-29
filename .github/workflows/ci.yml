@@ -8,9 +8,9 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             #Step 1
-            -name: Checksout Code
-            -uses: actions/checkout@v4
+            - name: Checksout Code
+              uses: actions/checkout@v4
             #Step 2
-            -name: Setup Docker
-            -uses: docker/setup-buildx-action@v3
+            - name: Setup Docker
+              uses: docker/setup-buildx-action@v3
           
