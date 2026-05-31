@@ -48,3 +48,7 @@ DOCKERHUB_PASS
 EC2_HOST
 EC2_USER
 EC2_SSH_KEY
+
+Secrets are stored in GitHub Actions Secrets and injected at deployment time. No application secrets are committed to source control. Docker Compose consumes the secrets through runtime environment variables during deployment.
+
+so no .env file is being created by me on server allthough that approach is also perfectly normal but i d rather inject into compsoe directly from github secrets and delete from session
