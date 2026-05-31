@@ -34,6 +34,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd ~/KubernesDeployment
+
             cat > .env << EOF
             DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
             MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}
@@ -41,8 +42,13 @@ jobs:
             DB_USER=${{ secrets.DB_USER }}
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
             EOF
-            #injecting secrets at runtime everytime
 
             docker compose pull
 
             docker compose up -d
+
+            echo "Waiting for services..."
+
+            sleep 30
+
+            docker compose ps
