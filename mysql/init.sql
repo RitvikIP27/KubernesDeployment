@@ -1,7 +1,7 @@
 -- SkillPulse Database Schema
 
-CREATE DATABASE IF NOT EXISTS skillpulse;
-USE skillpulse;
+CREATE DATABASE IF NOT EXISTS skillpulse_prod;
+USE skillpulse_prod;
 
 CREATE TABLE IF NOT EXISTS skills (
     id INT AUTO_INCREMENT PRIMARY KEY,
