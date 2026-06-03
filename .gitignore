@@ -20,3 +20,11 @@ Thumbs.db
 
 #Claude
 CLAUDE.md
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+
+# Terraform Plans
+*.tfplan
