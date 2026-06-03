@@ -418,3 +418,28 @@ AWS EC2
     ├── Go Backend
     └── MySQL
 ```
+
+# Infrastructure Pipeline
+
+A dedicated infrastructure workflow has been introduced.
+
+Purpose:
+
+- Terraform formatting validation
+- Terraform configuration validation
+- Infrastructure planning
+
+Current Workflow:
+
+Terraform fmt
+↓
+Terraform validate
+↓
+Terraform plan
+
+Future versions will include:
+
+- Terraform apply
+- Terraform destroy
+- Remote state management
+- Infrastructure approval gates

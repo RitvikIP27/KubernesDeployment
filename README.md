@@ -8,3 +8,21 @@ Three tier Github Actions project deployment
 ## Screenshots
 
 See the `screenshots/` directory for deployment and pipeline execution screenshots.
+
+## Completed
+
+- Dockerized Application
+- GitHub Actions CI/CD
+- AWS Deployment
+- Terraform Infrastructure Provisioning
+
+## In Progress
+
+- Ansible Configuration Management
+
+## Planned
+
+- Remote Terraform State
+- Prometheus & Grafana
+- Kubernetes
+- ArgoCD
