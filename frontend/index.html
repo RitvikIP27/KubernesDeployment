@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ritvik;s Skill Builder</title>
+    <title>SkillPulse - Target your Career Roadmap</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script>
         // Prevent flash of wrong theme on page load
         (function() {
@@ -26,6 +29,47 @@
     </header>
 
     <main class="container">
+        <!-- Target Role & Preparedness Section -->
+        <div class="role-dashboard-card">
+            <div class="role-dashboard-header">
+                <div class="role-selector-wrapper">
+                    <label for="role-select">Target Career Role</label>
+                    <select id="role-select" onchange="changeTargetRole(this.value)">
+                        <option value="Site Reliability Engineer (SRE)">Site Reliability Engineer (SRE)</option>
+                        <option value="DevOps Engineer">DevOps Engineer</option>
+                        <option value="Backend Developer">Backend Developer</option>
+                        <option value="Frontend Developer">Frontend Developer</option>
+                    </select>
+                </div>
+                <div class="preparedness-metrics">
+                    <div class="preparedness-header">
+                        <span>Role Preparedness</span>
+                        <strong id="preparedness-percentage">0%</strong>
+                    </div>
+                    <div class="preparedness-bar-container">
+                        <div class="preparedness-fill" id="preparedness-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="badges-wrapper">
+                <h4>Career Milestones & Badges</h4>
+                <div class="badges-grid" id="badges-grid">
+                    <!-- Badges will be dynamically inserted here -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- View Tabs -->
+        <div class="view-tabs">
+            <button class="tab-btn active" id="tab-roadmap" onclick="switchTab('roadmap')">
+                <span class="tab-icon">🗺️</span> Career Roadmap
+            </button>
+            <button class="tab-btn" id="tab-skills" onclick="switchTab('skills')">
+                <span class="tab-icon">⚡</span> All Tracked Skills
+            </button>
+        </div>
+
         <!-- Dashboard Stats -->
         <div class="stats" id="stats">
             <div class="stat-card">
@@ -46,15 +90,29 @@
             </div>
         </div>
 
-        <!-- Skills Section -->
-        <div class="section-header">
-            <h2>My Skills</h2>
-            <button class="btn btn-primary" onclick="openAddModal()">+ Add Skill</button>
+        <!-- Tab Content: Roadmap -->
+        <div id="content-roadmap" class="tab-content active">
+            <div class="section-header">
+                <h2>Role Skill Roadmap</h2>
+                <span class="section-desc">Skills required to master the targeted role</span>
+            </div>
+            <div class="roadmap-grid" id="roadmap-grid">
+                <!-- Roadmap items will be dynamically inserted here -->
+            </div>
         </div>
 
-        <div class="skills-grid" id="skills-grid">
-            <div class="empty-state" style="grid-column: 1 / -1">
-                <h3>Loading...</h3>
+        <!-- Tab Content: Skills Grid -->
+        <div id="content-skills" class="tab-content">
+            <div class="section-header">
+                <h2>My Skills</h2>
+                <button class="btn btn-primary" onclick="openAddModal()">+ Add Custom Skill</button>
+            </div>
+
+            <div class="skills-grid" id="skills-grid">
+                <div class="empty-state" style="grid-column: 1 / -1">
+                    <h3>No skills yet</h3>
+                    <p>Click "Add Custom Skill" to start tracking your learning journey.</p>
+                </div>
             </div>
         </div>
     </main>

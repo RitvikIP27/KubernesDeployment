@@ -13,7 +13,7 @@ func CreateLog(c *gin.Context) {
 
 	// Verify skill exists
 	var exists bool
-	err := database.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM skills WHERE id = ?)", skillID).Scan(&exists)
+	err := database.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM skills WHERE id = $1)", skillID).Scan(&exists)
 	if err != nil || !exists {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Skill not found"})
 		return
@@ -25,15 +25,15 @@ func CreateLog(c *gin.Context) {
 		return
 	}
 
-	result, err := database.DB.Exec(
-		"INSERT INTO learning_logs (skill_id, hours, notes, log_date) VALUES (?, ?, ?, ?)",
+	var id int
+	err = database.DB.QueryRow(
+		"INSERT INTO learning_logs (skill_id, hours, notes, log_date) VALUES ($1, $2, $3, $4) RETURNING id",
 		skillID, req.Hours, req.Notes, req.LogDate,
-	)
+	).Scan(&id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	id, _ := result.LastInsertId()
 	c.JSON(http.StatusCreated, gin.H{"id": id, "message": "Learning session logged"})
 }

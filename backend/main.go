@@ -23,6 +23,8 @@ func main() {
 		api.DELETE("/skills/:id", handlers.DeleteSkill)
 		api.POST("/skills/:id/log", handlers.CreateLog)
 		api.GET("/dashboard", handlers.GetDashboard)
+		api.GET("/settings", handlers.GetSettings)
+		api.POST("/settings", handlers.UpdateSetting)
 	}
 
 	// Health check

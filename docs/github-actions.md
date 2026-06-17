@@ -19,7 +19,7 @@ Frontend (Nginx)
 Backend (Go API)
         │
         ▼
-MySQL Database
+PostgreSQL/Supabase Database
 ```
 
 ---
@@ -292,7 +292,7 @@ Application secrets are injected during deployment.
 ```bash
 cat > .env << EOF
 DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
-MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}
+DATABASE_URL=${{ secrets.DATABASE_URL }}
 DB_NAME=${{ secrets.DB_NAME }}
 DB_USER=${{ secrets.DB_USER }}
 DB_PASSWORD=${{ secrets.DB_PASSWORD }}
@@ -351,7 +351,7 @@ The following secrets are stored in GitHub Actions:
 | EC2_HOST | EC2 Public IP |
 | EC2_USER | SSH User |
 | EC2_SSH_KEY | SSH Private Key |
-| MYSQL_ROOT_PASSWORD | MySQL Root Password |
+| DATABASE_URL | Supabase/Postgres Connection String (optional) |
 | DB_NAME | Application Database |
 | DB_USER | Database User |
 | DB_PASSWORD | Database Password |
@@ -366,7 +366,7 @@ During implementation, several real-world deployment issues were encountered and
 - Missing environment variables
 - Invalid Docker image references
 - Docker Hub authentication issues
-- MySQL health check timing failures
+- PostgreSQL health check timing failures
 - AWS Security Group configuration issues
 
 Resolving these issues provided hands-on experience with production-style troubleshooting and deployment debugging.
@@ -416,7 +416,7 @@ AWS EC2
     │
     ├── Nginx
     ├── Go Backend
-    └── MySQL
+    └── PostgreSQL/Supabase
 ```
 
 # Infrastructure Pipeline
