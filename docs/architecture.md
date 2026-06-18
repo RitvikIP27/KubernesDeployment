@@ -8,7 +8,7 @@ The system consists of:
 
 - Presentation Layer (Nginx)
 - Application Layer (Go Backend API)
-- Data Layer (MySQL Database)
+- Data Layer (PostgreSQL/Supabase Database)
 - CI/CD Automation Layer (GitHub Actions)
 - Container Registry (Docker Hub)
 - Deployment Infrastructure (AWS EC2)
@@ -58,8 +58,8 @@ The system consists of:
         ┌────────────────────┼────────────────────┐
         ▼                    ▼                    ▼
  ┌────────────┐      ┌────────────┐      ┌────────────┐
- │   Nginx    │─────▶│ Go Backend │─────▶│   MySQL    │
- │ Port: 80   │      │ Port:8080  │      │ Port:3306  │
+ │   Nginx    │─────▶│ Go Backend │─────▶│ PostgreSQL/│
+ │ Port: 80   │      │ Port:8080  │      │ Supabase   │
  └────────────┘      └────────────┘      └────────────┘
 ```
 
@@ -129,33 +129,33 @@ The backend is only accessible internally through Docker networking.
 
 ## Data Layer
 
-### MySQL
+### PostgreSQL / Supabase
 
 Responsibilities:
 
 - Data Persistence
 - Application State Storage
-- User Information Storage
+- User Settings Storage (Target Role & Path settings)
 
 Container:
 
 ```yaml
-mysql:8.4
+postgres:16-alpine
 ```
 
 Port:
 
 ```text
-3306
+5433 (Host mapped), 5432 (Internal Docker Network)
 ```
 
 Persistent Storage:
 
 ```yaml
-mysql_data
+postgres_data
 ```
 
-The database remains persistent even after container recreation.
+The database remains persistent even after container recreation and supports direct connections to Supabase for production.
 
 ---
 
@@ -283,7 +283,7 @@ Configured Secrets:
 | EC2_HOST | AWS EC2 Public IP |
 | EC2_USER | EC2 SSH User |
 | EC2_SSH_KEY | EC2 SSH Key |
-| MYSQL_ROOT_PASSWORD | Database Root Password |
+| DATABASE_URL | Supabase/PostgreSQL connection string (optional) |
 | DB_NAME | Database Name |
 | DB_USER | Database User |
 | DB_PASSWORD | Database Password |
@@ -294,11 +294,11 @@ No sensitive credentials are committed to source control.
 
 # Data Persistence Strategy
 
-MySQL data is stored using Docker Volumes.
+PostgreSQL data is stored using Docker Volumes.
 
 ```yaml
 volumes:
-  mysql_data:
+  postgres_data:
 ```
 
 Benefits:
@@ -311,11 +311,11 @@ Benefits:
 
 # Health Checks
 
-The MySQL container implements health checks.
+The PostgreSQL container implements health checks.
 
 ```yaml
 healthcheck:
-  test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+  test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
 ```
 
 Purpose:
@@ -355,7 +355,7 @@ During implementation, several real-world deployment issues were identified and 
 - Docker image naming mismatches
 - Docker Hub authentication failures
 - Container startup dependency issues
-- MySQL readiness timing failures
+- PostgreSQL readiness timing failures
 - Security Group networking issues
 
 Resolving these challenges provided practical experience with infrastructure troubleshooting and production deployment debugging.

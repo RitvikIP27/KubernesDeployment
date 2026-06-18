@@ -43,16 +43,16 @@ func CreateSkill(c *gin.Context) {
 		return
 	}
 
-	result, err := database.DB.Exec(
-		"INSERT INTO skills (name, category, target_hours) VALUES (?, ?, ?)",
+	var id int
+	err := database.DB.QueryRow(
+		"INSERT INTO skills (name, category, target_hours) VALUES ($1, $2, $3) RETURNING id",
 		req.Name, req.Category, req.TargetHours,
-	)
+	).Scan(&id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	id, _ := result.LastInsertId()
 	c.JSON(http.StatusCreated, gin.H{"id": id, "message": "Skill created"})
 }
 
@@ -65,7 +65,7 @@ func GetSkill(c *gin.Context) {
 		       COALESCE(SUM(l.hours), 0) as total_hours, s.created_at
 		FROM skills s
 		LEFT JOIN learning_logs l ON s.id = l.skill_id
-		WHERE s.id = ?
+		WHERE s.id = $1
 		GROUP BY s.id, s.name, s.category, s.target_hours, s.created_at
 	`, id).Scan(&skill.ID, &skill.Name, &skill.Category, &skill.TargetHours, &skill.TotalHours, &skill.CreatedAt)
 
@@ -76,7 +76,7 @@ func GetSkill(c *gin.Context) {
 
 	// Get learning logs for this skill
 	rows, err := database.DB.Query(
-		"SELECT id, skill_id, hours, notes, log_date, created_at FROM learning_logs WHERE skill_id = ? ORDER BY log_date DESC",
+		"SELECT id, skill_id, hours, notes, log_date, created_at FROM learning_logs WHERE skill_id = $1 ORDER BY log_date DESC",
 		id,
 	)
 	if err != nil {
@@ -101,7 +101,7 @@ func GetSkill(c *gin.Context) {
 func DeleteSkill(c *gin.Context) {
 	id := c.Param("id")
 
-	result, err := database.DB.Exec("DELETE FROM skills WHERE id = ?", id)
+	result, err := database.DB.Exec("DELETE FROM skills WHERE id = $1", id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

@@ -41,7 +41,7 @@
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background: var(--bg);
     color: var(--text);
     line-height: 1.6;
@@ -413,3 +413,346 @@ body {
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
 }
+
+/* Career Dashboard Styling */
+.role-dashboard-card {
+    background: var(--surface);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    border-radius: var(--radius);
+    padding: 1.75rem;
+    margin-bottom: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: var(--theme-transition);
+}
+
+.role-dashboard-header {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    align-items: center;
+}
+
+@media (max-width: 768px) {
+    .role-dashboard-header {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+    }
+}
+
+.role-selector-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.role-selector-wrapper label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+}
+
+.role-selector-wrapper select {
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface-solid);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 1.05rem;
+    font-weight: 600;
+    outline: none;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    transition: all 0.2s ease;
+}
+
+.role-selector-wrapper select:hover {
+    border-color: var(--primary-light);
+}
+
+.role-selector-wrapper select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+}
+
+.preparedness-metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.preparedness-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+.preparedness-header span {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+}
+
+.preparedness-header strong {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--success);
+    line-height: 1;
+}
+
+.preparedness-bar-container {
+    background: var(--border);
+    height: 16px;
+    border-radius: 9999px;
+    overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.preparedness-fill {
+    height: 100%;
+    border-radius: 9999px;
+    background: linear-gradient(90deg, var(--primary), var(--primary-light), var(--success));
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+    transition: width 0.6s cubic-bezier(0.1, 0.8, 0.2, 1);
+    position: relative;
+}
+
+.preparedness-fill::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.25) 50%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    animation: shimmers 2.5s infinite linear;
+}
+
+@keyframes shimmers {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.badges-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    border-top: 1px dashed var(--border);
+    padding-top: 1.25rem;
+}
+
+.badges-wrapper h4 {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+}
+
+.badges-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 1rem;
+}
+
+.badge-card {
+    background: var(--surface-solid);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    user-select: none;
+}
+
+.badge-card.locked {
+    opacity: 0.35;
+    filter: grayscale(100%);
+    border-style: dotted;
+}
+
+.badge-card.unlocked {
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1);
+    transform: scale(1.03);
+}
+
+.badge-card.unlocked.level-1 { border-color: #3b82f6; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2); }
+.badge-card.unlocked.level-2 { border-color: #10b981; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); }
+.badge-card.unlocked.level-3 { border-color: #f59e0b; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2); }
+.badge-card.unlocked.level-4 { border-color: #ec4899; box-shadow: 0 4px 12px rgba(236, 72, 153, 0.2); }
+.badge-card.unlocked.level-5 { border-color: #8b5cf6; box-shadow: 0 8px 20px rgba(139, 92, 246, 0.3); animation: bounceBadge 2s infinite ease-in-out; }
+
+@keyframes bounceBadge {
+    0%, 100% { transform: translateY(0) scale(1.03); }
+    50% { transform: translateY(-4px) scale(1.06); }
+}
+
+.badge-icon {
+    font-size: 2.2rem;
+    margin-bottom: 0.25rem;
+    transition: transform 0.2s ease;
+}
+
+.badge-card.unlocked:hover .badge-icon {
+    transform: rotate(15deg) scale(1.1);
+}
+
+.badge-name {
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.badge-level {
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.badge-card.unlocked.level-1 .badge-name { color: #3b82f6; }
+.badge-card.unlocked.level-2 .badge-name { color: #10b981; }
+.badge-card.unlocked.level-3 .badge-name { color: #f59e0b; }
+.badge-card.unlocked.level-4 .badge-name { color: #ec4899; }
+.badge-card.unlocked.level-5 .badge-name { color: #8b5cf6; }
+
+/* Tabs Navigation */
+.view-tabs {
+    display: flex;
+    gap: 0.5rem;
+    background: var(--surface);
+    border: var(--glass-border);
+    padding: 0.35rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--glass-shadow);
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: var(--text-muted);
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.tab-btn:hover {
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.tab-btn.active {
+    background: var(--surface-solid);
+    color: var(--primary);
+    box-shadow: var(--shadow);
+}
+
+[data-theme="dark"] .tab-btn.active {
+    color: var(--primary-light);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+    animation: tabFadeIn 0.3s ease;
+}
+
+@keyframes tabFadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.section-desc {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    display: block;
+    margin-top: -0.75rem;
+    margin-bottom: 1.25rem;
+}
+
+/* Roadmap Grid */
+.roadmap-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+
+.roadmap-card {
+    background: var(--surface);
+    backdrop-filter: blur(var(--glass-blur));
+    border: var(--glass-border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    box-shadow: var(--glass-shadow);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: var(--theme-transition), transform 0.2s ease, box-shadow 0.2s ease;
+    min-height: 160px;
+}
+
+.roadmap-card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+.roadmap-card.completed {
+    border-color: rgba(16, 185, 129, 0.4);
+    background: linear-gradient(180deg, var(--surface), rgba(16, 185, 129, 0.03));
+}
+
+.roadmap-card.unstarted {
+    border-style: dashed;
+    opacity: 0.85;
+}
+
+.roadmap-card .skill-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.75rem;
+}
+
+.status-badge {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 0.2rem 0.5rem;
+    border-radius: 9999px;
+}
+
+.status-badge.unstarted { background: var(--border); color: var(--text-muted); }
+.status-badge.learning { background: rgba(79, 70, 229, 0.15); color: var(--primary); }
+.status-badge.completed { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+
+[data-theme="dark"] .status-badge.learning { color: var(--primary-light); }
