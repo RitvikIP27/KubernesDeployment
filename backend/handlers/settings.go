@@ -13,7 +13,13 @@ type UpdateSettingRequest struct {
 }
 
 func GetSettings(c *gin.Context) {
-	rows, err := database.DB.Query("SELECT key, value FROM settings")
+	userID, ok := getCurrentUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	rows, err := database.DB.Query("SELECT key, value FROM settings WHERE user_id = $1", userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -34,6 +40,12 @@ func GetSettings(c *gin.Context) {
 }
 
 func UpdateSetting(c *gin.Context) {
+	userID, ok := getCurrentUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
 	var req UpdateSettingRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -41,9 +53,9 @@ func UpdateSetting(c *gin.Context) {
 	}
 
 	_, err := database.DB.Exec(
-		`INSERT INTO settings (key, value) VALUES ($1, $2)
-		 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`,
-		req.Key, req.Value,
+		`INSERT INTO settings (user_id, key, value) VALUES ($1, $2, $3)
+		 ON CONFLICT (user_id, key) DO UPDATE SET value = EXCLUDED.value`,
+		userID, req.Key, req.Value,
 	)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
