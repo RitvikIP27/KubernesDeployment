@@ -7,15 +7,38 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/trainwithshubham/skillpulse/database"
 	"github.com/trainwithshubham/skillpulse/handlers"
+	"github.com/trainwithshubham/skillpulse/middleware"
 )
 
 func main() {
 	database.Connect()
 
+	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		log.Fatal("missing JWT_SECRET environment variable")
+	}
+
 	router := gin.Default()
+
+	// Auth routes
+	router.POST("/auth/register", handlers.Register)
+	router.POST("/auth/login", handlers.Login)
+	router.GET("/auth/me", middleware.AuthMiddleware(jwtSecret), handlers.GetMe)
+	router.GET("/auth/google", handlers.GoogleLogin)
+	router.GET("/auth/google/callback", handlers.GoogleCallback)
+
+	authAPI := router.Group("/api/auth")
+	{
+		authAPI.POST("/register", handlers.Register)
+		authAPI.POST("/login", handlers.Login)
+		authAPI.GET("/me", middleware.AuthMiddleware(jwtSecret), handlers.GetMe)
+		authAPI.GET("/google", handlers.GoogleLogin)
+		authAPI.GET("/google/callback", handlers.GoogleCallback)
+	}
 
 	// API routes
 	api := router.Group("/api")
+	api.Use(middleware.AuthMiddleware(jwtSecret))
 	{
 		api.GET("/skills", handlers.GetSkills)
 		api.POST("/skills", handlers.CreateSkill)

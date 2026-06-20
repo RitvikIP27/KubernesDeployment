@@ -9,11 +9,19 @@ import (
 )
 
 func CreateLog(c *gin.Context) {
+	userID, ok := getCurrentUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
 	skillID := c.Param("id")
 
-	// Verify skill exists
 	var exists bool
-	err := database.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM skills WHERE id = $1)", skillID).Scan(&exists)
+	err := database.DB.QueryRow(
+		"SELECT EXISTS(SELECT 1 FROM skills WHERE id = $1 AND user_id = $2)",
+		skillID, userID,
+	).Scan(&exists)
 	if err != nil || !exists {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Skill not found"})
 		return
@@ -27,8 +35,8 @@ func CreateLog(c *gin.Context) {
 
 	var id int
 	err = database.DB.QueryRow(
-		"INSERT INTO learning_logs (skill_id, hours, notes, log_date) VALUES ($1, $2, $3, $4) RETURNING id",
-		skillID, req.Hours, req.Notes, req.LogDate,
+		"INSERT INTO learning_logs (skill_id, user_id, hours, notes, log_date) VALUES ($1, $2, $3, $4, $5) RETURNING id",
+		skillID, userID, req.Hours, req.Notes, req.LogDate,
 	).Scan(&id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
