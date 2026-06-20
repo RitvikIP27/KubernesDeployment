@@ -1,6 +1,140 @@
 const API = '/api';
 
-// Roadmaps config definition
+// Adding authentication service
+let authToken = localStorage.getItem('helixacore-token');
+
+function readAuthRedirect() {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    const authError = params.get('auth_error');
+
+    if (token) {
+        authToken = token;
+        localStorage.setItem('helixacore-token', authToken);
+        window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (authError) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    return { token, authError };
+}
+
+const authRedirect = readAuthRedirect();
+
+function getAuthHeaders() {
+    const headers = { 'Content-Type': 'application/json' };
+    if (authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`;
+    }
+    return headers;
+}
+
+function logout() {
+    localStorage.removeItem('helixacore-token');
+    authToken = null;
+    showLoginPage();
+}
+
+function showLoginPage() {
+    const authContainer = document.getElementById('auth-container');
+    const appContainer = document.querySelector('main.container');
+    const header = document.querySelector('.header');
+
+    if (authContainer) authContainer.hidden = false;
+    if (appContainer) appContainer.hidden = true;
+    if (header) header.hidden = true;
+}
+
+function hideLoginPage() {
+    const authContainer = document.getElementById('auth-container');
+    const appContainer = document.querySelector('main.container');
+    const header = document.querySelector('.header');
+
+    if (authContainer) authContainer.hidden = true;
+    if (appContainer) appContainer.hidden = false;
+    if (header) header.hidden = false;
+}
+
+function switchAuthTab(event, tab) {
+    document.querySelectorAll('.auth-tab').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.auth-tab-btn').forEach(el => el.classList.remove('active'));
+    const targetTab = document.getElementById(tab + '-tab');
+    if (targetTab) targetTab.classList.add('active');
+    if (event && event.currentTarget) event.currentTarget.classList.add('active');
+}
+
+function startGoogleLogin() {
+    window.location.href = `${API}/auth/google`;
+}
+
+async function readResponse(res) {
+    const contentType = res.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+        return res.json();
+    }
+
+    const text = await res.text();
+    return { error: text || `Request failed with status ${res.status}` };
+}
+
+async function handleLogin(e) {
+    e.preventDefault();
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+
+    try {
+        const res = await fetch(`${API}/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+
+        if (!res.ok) {
+            const err = await readResponse(res);
+            document.getElementById('login-error').textContent = err.error || 'Login failed';
+            return;
+        }
+
+        const data = await readResponse(res);
+        authToken = data.token;
+        localStorage.setItem('helixacore-token', authToken);
+        triggerConfetti();
+        setTimeout(() => location.reload(), 900);
+    } catch (err) {
+        document.getElementById('login-error').textContent = 'An error occurred: ' + err.message;
+    }
+}
+
+async function handleRegister(e) {
+    e.preventDefault();
+    const name = document.getElementById('register-name').value;
+    const email = document.getElementById('register-email').value;
+    const password = document.getElementById('register-password').value;
+
+    try {
+        const res = await fetch(`${API}/auth/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, password })
+        });
+
+        if (!res.ok) {
+            const err = await readResponse(res);
+            document.getElementById('register-error').textContent = err.error || 'Registration failed';
+            return;
+        }
+
+        const data = await readResponse(res);
+        authToken = data.token;
+        localStorage.setItem('helixacore-token', authToken);
+        triggerConfetti();
+        setTimeout(() => location.reload(), 900);
+    } catch (err) {
+        document.getElementById('register-error').textContent = 'An error occurred: ' + err.message;
+    }
+}
+
+// Roadmaps config  KI definition
 const ROADMAPS = {
     "Site Reliability Engineer (SRE)": [
         { name: "Linux Basics", category: "DevOps", target_hours: 20 },
@@ -40,14 +174,14 @@ const ROADMAPS = {
 
 // Theme Management
 function getPreferredTheme() {
-    const stored = localStorage.getItem('skillpulse-theme');
+    const stored = localStorage.getItem('helixacore-theme');
     if (stored) return stored;
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
 function applyTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('skillpulse-theme', theme);
+    localStorage.setItem('helixacore-theme', theme);
     const btn = document.getElementById('theme-toggle');
     if (btn) btn.textContent = theme === 'dark' ? '\u2600\uFE0F' : '\uD83C\uDF19';
 }
@@ -65,7 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-    if (!localStorage.getItem('skillpulse-theme')) {
+    if (!localStorage.getItem('helixacore-theme')) {
         applyTheme(e.matches ? 'dark' : 'light');
     }
 });
@@ -86,6 +220,26 @@ const logSessionForm = document.getElementById('log-session-form');
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
+    if (!authToken) {
+        showLoginPage();
+        if (authRedirect.authError) {
+            const loginError = document.getElementById('login-error');
+            if (loginError) loginError.textContent = authRedirect.authError;
+        }
+        return;
+    }
+
+    // ShOwnig  logout button to header
+    const header = document.querySelector('.header-content');
+    if (header) {
+        const logoutBtn = document.createElement('button');
+        logoutBtn.className = 'logout-btn';
+        logoutBtn.textContent = 'Logout';
+        logoutBtn.style.cssText = 'position: absolute; top: 1rem; right: 3rem; padding: 0.5rem 1rem; background: #f44; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;';
+        logoutBtn.onclick = logout;
+        header.parentElement.appendChild(logoutBtn);
+    }
+
     await loadSettings();
     loadDashboard();
     loadSkills();
@@ -94,7 +248,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 // API Calls
 async function loadSettings() {
     try {
-        const res = await fetch(`${API}/settings`);
+        const res = await fetch(`${API}/settings`, {
+            headers: getAuthHeaders()
+        });
         if (res.ok) {
             const settings = await res.json();
             if (settings && settings.target_role) {
@@ -112,7 +268,7 @@ async function saveTargetRole(role) {
     try {
         const res = await fetch(`${API}/settings`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getAuthHeaders(),
             body: JSON.stringify({ key: 'target_role', value: role }),
         });
         if (!res.ok) throw new Error('Failed to save target role setting');
@@ -123,7 +279,9 @@ async function saveTargetRole(role) {
 
 async function loadDashboard() {
     try {
-        const res = await fetch(`${API}/dashboard`);
+        const res = await fetch(`${API}/dashboard`, {
+            headers: getAuthHeaders()
+        });
         dashboard = await res.json();
         renderStats();
     } catch (err) {
@@ -133,7 +291,9 @@ async function loadDashboard() {
 
 async function loadSkills() {
     try {
-        const res = await fetch(`${API}/skills`);
+        const res = await fetch(`${API}/skills`, {
+            headers: getAuthHeaders()
+        });
         skills = await res.json();
         renderSkills();
         renderRoadmap();
@@ -146,7 +306,7 @@ async function loadSkills() {
 async function createSkill(data) {
     const res = await fetch(`${API}/skills`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify(data),
     });
     if (!res.ok) throw new Error('Failed to create skill');
@@ -154,7 +314,10 @@ async function createSkill(data) {
 }
 
 async function deleteSkill(id) {
-    const res = await fetch(`${API}/skills/${id}`, { method: 'DELETE' });
+    const res = await fetch(`${API}/skills/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+    });
     if (!res.ok) throw new Error('Failed to delete skill');
     return res.json();
 }
@@ -162,7 +325,7 @@ async function deleteSkill(id) {
 async function logSession(skillId, data) {
     const res = await fetch(`${API}/skills/${skillId}/log`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify(data),
     });
     if (!res.ok) throw new Error('Failed to log session');
@@ -472,11 +635,43 @@ function showToast(message, type = 'success') {
     setTimeout(() => toast.classList.remove('show'), 3000);
 }
 
+function triggerConfetti() {
+    const container = document.getElementById('confetti-container');
+    if (!container) return;
+
+    const colors = ['#8b5cf6', '#22c55e', '#38bdf8', '#f97316', '#ec4899', '#fbbf24'];
+    for (let i = 0; i < 24; i++) {
+        const piece = document.createElement('div');
+        const size = Math.floor(Math.random() * 10) + 6;
+        piece.className = 'confetti-piece';
+        piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.left = `${Math.random() * 100}%`;
+        piece.style.width = `${size}px`;
+        piece.style.height = `${size * 0.4}px`;
+        piece.style.opacity = Math.random() * 0.9 + 0.4;
+        piece.style.transform = `rotate(${Math.random() * 360}deg)`;
+        container.appendChild(piece);
+
+        requestAnimationFrame(() => {
+            piece.style.transform += ` translateY(120vh) rotate(${Math.random() * 720}deg)`;
+            piece.style.opacity = '0';
+        });
+
+        setTimeout(() => {
+            piece.remove();
+        }, 1400 + Math.random() * 400);
+    }
+}
+
 // Close modals on backdrop click
-document.querySelectorAll('.modal-backdrop').forEach(el => {
-    el.addEventListener('click', (e) => {
-        if (e.target === el) {
-            el.classList.remove('active');
-        }
+function attachBackdropListeners() {
+    document.querySelectorAll('.modal-backdrop').forEach(el => {
+        el.addEventListener('click', (e) => {
+            if (e.target === el) {
+                el.classList.remove('active');
+            }
+        });
     });
-});
+}
+
+attachBackdropListeners();

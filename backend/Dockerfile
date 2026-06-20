@@ -3,6 +3,8 @@ FROM golang:1.26-alpine AS builder
 
 WORKDIR /app
 
+RUN apk add --no-cache git
+
 COPY . .
 RUN go mod tidy && CGO_ENABLED=0 GOOS=linux go build -o skillpulse .
 

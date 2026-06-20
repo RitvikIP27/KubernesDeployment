@@ -2,7 +2,7 @@ name: Ritvik's CD workflow
 
 on:
   workflow_run:
-    workflows: ["Ritvik's CI Workflow"]
+    workflows: ["Ritvik's Production CI Workflow"]
     types:
       - completed
     branches:
@@ -41,6 +41,11 @@ jobs:
             DB_NAME=${{ secrets.DB_NAME }}
             DB_USER=${{ secrets.DB_USER }}
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+            GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+            GOOGLE_REDIRECT_URI=${{ secrets.GOOGLE_REDIRECT_URI }}
+            APP_URL=${{ secrets.APP_URL }}
             EOF
 
             docker compose pull
