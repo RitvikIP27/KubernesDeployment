@@ -1,25 +1,18 @@
 services:
-  # Go Backend API
   backend:
-    build: ./backend
+    image: ${DOCKERHUB_USERNAME}/k8app-backend:latest
     restart: unless-stopped
     environment:
       DATABASE_URL: ${DATABASE_URL}
       JWT_SECRET: ${JWT_SECRET}
-      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
-      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
-      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-}
-      APP_URL: ${APP_URL:-http://localhost}
       PORT: "8080"
 
-  # Nginx - Frontend + Reverse Proxy
   nginx:
-    image: nginx:alpine
+    image: ${DOCKERHUB_USERNAME}/k8app-nginx:latest
     restart: unless-stopped
     ports:
       - "80:80"
-    volumes:
-      - ./frontend:/usr/share/nginx/html:ro
-      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
       - backend
+
+# No mount volume or Db service image required as i use supabase for db and storage.
