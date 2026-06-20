@@ -15,7 +15,6 @@ var DB *sql.DB
 func Connect() {
 	var connStr string
 
-	// Support DATABASE_URL directly (standard for production Supabase/hosted DBs)
 	if envConn := os.Getenv("DATABASE_URL"); envConn != "" {
 		connStr = envConn
 	} else {

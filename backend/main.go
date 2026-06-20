@@ -5,9 +5,9 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
-	"github.com/trainwithshubham/skillpulse/database"
-	"github.com/trainwithshubham/skillpulse/handlers"
-	"github.com/trainwithshubham/skillpulse/middleware"
+	"github.com/RitvikIP27/KubernesDeployment/database"
+	"github.com/RitvikIP27/KubernesDeployment/handlers"
+	"github.com/RitvikIP27/KubernesDeployment/middleware"
 )
 
 func main() {

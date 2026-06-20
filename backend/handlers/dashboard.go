@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/trainwithshubham/skillpulse/database"
-	"github.com/trainwithshubham/skillpulse/models"
+	"github.com/RitvikIP27/KubernesDeployment/database"
+	"github.com/RitvikIP27/KubernesDeployment/models"
 )
 
 func GetDashboard(c *gin.Context) {

@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/trainwithshubham/skillpulse/database"
+	"github.com/RitvikIP27/KubernesDeployment/database"
 )
 
 type UpdateSettingRequest struct {
