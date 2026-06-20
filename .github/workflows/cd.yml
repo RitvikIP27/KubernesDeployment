@@ -1,4 +1,4 @@
-name: Ritvik's CD workflow
+name: Ritvik's CD Workflow
 
 on:
   workflow_run:
@@ -14,10 +14,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Copy files to EC2
+      - name: Copy Files to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -26,28 +26,36 @@ jobs:
           source: "."
           target: "/home/ubuntu/KubernesDeployment"
 
-      - name: Deploy to EC2
+      - name: Deploy Application
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            set -e
+
             cd ~/KubernesDeployment
 
             cat > .env << EOF
             DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
             DATABASE_URL=${{ secrets.DATABASE_URL }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}
-        
             EOF
+
+            docker login \
+              -u "${{ secrets.DOCKERHUB_USERNAME }}" \
+              -p "${{ secrets.DOCKERHUB_PASS }}"
 
             docker compose pull
 
             docker compose up -d --remove-orphans
 
             echo "Waiting for services..."
+            sleep 20
 
-            sleep 30
-
+            echo "Container Status:"
             docker compose ps
+
+            echo "Backend Logs:"
+            docker compose logs backend --tail=50
