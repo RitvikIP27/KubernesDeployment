@@ -4,13 +4,16 @@ import (
 	"log"
 	"os"
 
-	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
+
 	"github.com/RitvikIP27/KubernesDeployment/database"
 	"github.com/RitvikIP27/KubernesDeployment/handlers"
 	"github.com/RitvikIP27/KubernesDeployment/middleware"
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
+	_ = godotenv.Load("../.env")
 	database.Connect()
 
 	jwtSecret := os.Getenv("JWT_SECRET")
@@ -24,8 +27,8 @@ func main() {
 	router.POST("/auth/register", handlers.Register)
 	router.POST("/auth/login", handlers.Login)
 	router.GET("/auth/me", middleware.AuthMiddleware(jwtSecret), handlers.GetMe)
-	router.GET("/auth/google", handlers.GoogleLogin)
-	router.GET("/auth/google/callback", handlers.GoogleCallback)
+	// router.GET("/auth/google", handlers.GoogleLogin)
+	// router.GET("/auth/google/callback", handlers.GoogleCallback)
 
 	authAPI := router.Group("/api/auth")
 	{
