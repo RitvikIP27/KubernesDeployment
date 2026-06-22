@@ -675,3 +675,623 @@ function attachBackdropListeners() {
 }
 
 attachBackdropListeners();
+
+// ============================================
+// PHASE 2: ANALYTICS DASHBOARD
+// ============================================
+
+async function loadAnalytics() {
+    if (!authToken) return;
+    
+    try {
+        const res = await fetch(`${API}/analytics`, {
+            headers: getAuthHeaders()
+        });
+        
+        if (!res.ok) throw new Error('Failed to load analytics');
+        
+        const data = await res.json();
+        displayAnalyticsDashboard(data);
+    } catch (err) {
+        showToast('Failed to load analytics', 'error');
+        console.error(err);
+    }
+}
+
+function displayAnalyticsDashboard(data) {
+    // Learning Hours Chart
+    if (data.learning_hours && document.getElementById('chart-learning-hours')) {
+        new Chart(document.getElementById('chart-learning-hours'), {
+            type: 'bar',
+            data: {
+                labels: data.learning_hours.map(p => p.label),
+                datasets: [{
+                    label: 'Hours',
+                    data: data.learning_hours.map(p => p.value),
+                    backgroundColor: 'rgba(79, 70, 229, 0.5)',
+                    borderColor: 'rgba(79, 70, 229, 1)',
+                    borderRadius: 6
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: true }
+        });
+    }
+
+    // Weekly Progress Chart
+    if (data.weekly_progress && document.getElementById('chart-weekly')) {
+        new Chart(document.getElementById('chart-weekly'), {
+            type: 'line',
+            data: {
+                labels: data.weekly_progress.map(p => p.label),
+                datasets: [{
+                    label: 'Weekly Hours',
+                    data: data.weekly_progress.map(p => p.value),
+                    borderColor: 'rgba(79, 70, 229, 1)',
+                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: true }
+        });
+    }
+
+    // Monthly Progress Chart
+    if (data.monthly_progress && document.getElementById('chart-monthly')) {
+        new Chart(document.getElementById('chart-monthly'), {
+            type: 'line',
+            data: {
+                labels: data.monthly_progress.map(p => p.label),
+                datasets: [{
+                    label: 'Monthly Hours',
+                    data: data.monthly_progress.map(p => p.value),
+                    borderColor: 'rgba(16, 185, 129, 1)',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: true }
+        });
+    }
+
+    // Activity Heatmap
+    if (data.activity_calendar) {
+        displayActivityHeatmap(data.activity_calendar);
+    }
+
+    // Streaks
+    if (data.streaks) {
+        document.getElementById('current-streak').textContent = data.streaks.current;
+        document.getElementById('longest-streak').textContent = data.streaks.longest;
+    }
+
+    // Top Skills
+    if (data.top_skills) {
+        const topSkillsList = document.getElementById('top-skills-list');
+        topSkillsList.innerHTML = data.top_skills.map(skill => `
+            <div class="skill-item">
+                <div class="skill-item-name">${skill.name}</div>
+                <div class="skill-item-value">${skill.hours}h (${Math.round(skill.progress)}%)</div>
+            </div>
+        `).join('');
+    }
+}
+
+function displayActivityHeatmap(days) {
+    const heatmapEl = document.getElementById('activity-heatmap');
+    if (!heatmapEl) return;
+    
+    heatmapEl.innerHTML = days.map(day => {
+        const title = `${day.date}: ${day.hours}h`;
+        return `<div class="heatmap-day level-${day.level}" title="${title}"></div>`;
+    }).join('');
+}
+
+// ============================================
+// PHASE 3: CAREER READINESS
+// ============================================
+
+async function loadCareerReadiness() {
+    if (!authToken) return;
+    
+    try {
+        const res = await fetch(`${API}/career-readiness`, {
+            headers: getAuthHeaders()
+        });
+        
+        if (!res.ok) throw new Error('Failed to load career readiness');
+        
+        const data = await res.json();
+        displayCareerReadiness(data);
+    } catch (err) {
+        showToast('Failed to load career readiness', 'error');
+        console.error(err);
+    }
+}
+
+function displayCareerReadiness(readinessScores) {
+    const grid = document.getElementById('readiness-grid');
+    grid.innerHTML = readinessScores.map(score => `
+        <div class="readiness-card">
+            <h3>${score.track}</h3>
+            <div class="readiness-score">
+                <div class="readiness-circle" style="--score-angle: ${(score.score / 100) * 360}deg">
+                    ${score.score}%
+                </div>
+                <div class="readiness-details">
+                    <h4>Readiness Score</h4>
+                    <p>${score.progress_percent}% Complete</p>
+                </div>
+            </div>
+            <div class="readiness-skills">
+                <h4>✓ Matched Skills (${score.matched_skills.length})</h4>
+                <div class="skill-tags">
+                    ${score.matched_skills.map(s => `<span class="skill-tag">${s}</span>`).join('')}
+                </div>
+            </div>
+            <div class="readiness-skills">
+                <h4>→ Skills to Learn (${score.missing_skills.length})</h4>
+                <div class="skill-tags">
+                    ${score.missing_skills.map(s => `<span class="skill-tag missing">${s}</span>`).join('')}
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// ============================================
+// PHASE 4: JOB MATCHING
+// ============================================
+
+async function loadJobMatches() {
+    if (!authToken) return;
+    
+    try {
+        const res = await fetch(`${API}/job-matches`, {
+            headers: getAuthHeaders()
+        });
+        
+        if (!res.ok) throw new Error('Failed to load job matches');
+        
+        const data = await res.json();
+        displayJobMatches(data);
+    } catch (err) {
+        showToast('Failed to load job matches', 'error');
+        console.error(err);
+    }
+}
+
+function displayJobMatches(matches) {
+    const grid = document.getElementById('job-matches-grid');
+    grid.innerHTML = matches.map(match => `
+        <div class="job-match-card">
+            <h3>${match.role}</h3>
+            <div class="job-readiness">
+                <div class="job-readiness-value">${match.readiness_score}%</div>
+                <div class="job-readiness-label">
+                    <small>Role Readiness</small>
+                    <span>
+                        ${match.readiness_score >= 70 ? '🚀 Ready' : match.readiness_score >= 40 ? '📈 Building' : '🌱 Starting'}
+                    </span>
+                </div>
+            </div>
+            
+            <div class="job-skills-section">
+                <h4><span>${match.matched_skills.length}</span> Matched</h4>
+                <div class="job-skills-list">
+                    ${match.matched_skills.map(s => `<span class="job-skill">${s}</span>`).join('')}
+                </div>
+            </div>
+            
+            <div class="job-skills-section">
+                <h4><span>${match.missing_skills.length}</span> Missing</h4>
+                <div class="job-skills-list">
+                    ${match.missing_skills.map(s => `<span class="job-skill missing">${s}</span>`).join('')}
+                </div>
+            </div>
+            
+            <div class="job-recommendation">
+                <strong>Next Step:</strong> ${match.recommended_next}
+            </div>
+        </div>
+    `).join('');
+}
+
+// ============================================
+// PHASE 5: PROJECTS & CERTIFICATES
+// ============================================
+
+async function loadProjects() {
+    if (!authToken) return;
+    
+    try {
+        const res = await fetch(`${API}/projects`, {
+            headers: getAuthHeaders()
+        });
+        
+        if (!res.ok) throw new Error('Failed to load projects');
+        
+        const data = await res.json();
+        displayProjects(data);
+    } catch (err) {
+        showToast('Failed to load projects', 'error');
+        console.error(err);
+    }
+}
+
+function displayProjects(projects) {
+    const grid = document.getElementById('projects-grid');
+    if (!projects || projects.length === 0) {
+        grid.innerHTML = '<div class="empty-state" style="grid-column: 1/-1;"><h3>No projects yet</h3><p>Add your projects to showcase your work.</p></div>';
+        return;
+    }
+    
+    grid.innerHTML = projects.map(p => `
+        <div class="project-card">
+            <h3>${p.title}</h3>
+            <p class="project-desc">${p.description || 'No description'}</p>
+            ${p.impact ? `<div class="project-impact"><label>Impact</label><p>${p.impact}</p></div>` : ''}
+            ${p.technologies && p.technologies.length ? `
+                <div class="project-tech">
+                    <label>Technologies</label>
+                    <div class="tech-tags">
+                        ${p.technologies.map(t => `<span class="tech-tag">${t}</span>`).join('')}
+                    </div>
+                </div>
+            ` : ''}
+            <div class="project-meta">
+                ${p.link ? `<a href="${p.link}" target="_blank" class="project-link">View Project →</a>` : ''}
+                ${p.duration_months ? `<span>${p.duration_months} months</span>` : ''}
+            </div>
+            <div class="card-actions">
+                <button class="btn-delete" onclick="deleteProject(${p.id})">Delete</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+async function loadCertificates() {
+    if (!authToken) return;
+    
+    try {
+        const res = await fetch(`${API}/certificates`, {
+            headers: getAuthHeaders()
+        });
+        
+        if (!res.ok) throw new Error('Failed to load certificates');
+        
+        const data = await res.json();
+        displayCertificates(data);
+    } catch (err) {
+        showToast('Failed to load certificates', 'error');
+        console.error(err);
+    }
+}
+
+function displayCertificates(certificates) {
+    const grid = document.getElementById('certificates-grid');
+    if (!certificates || certificates.length === 0) {
+        grid.innerHTML = '<div class="empty-state" style="grid-column: 1/-1;"><h3>No certificates yet</h3><p>Add your certifications and credentials.</p></div>';
+        return;
+    }
+    
+    grid.innerHTML = certificates.map(c => `
+        <div class="certificate-card">
+            <h3>${c.name}</h3>
+            <p class="certificate-issuer">${c.issuer || 'Certification'}</p>
+            ${c.skills_covered && c.skills_covered.length ? `
+                <div class="project-tech">
+                    <label>Skills Covered</label>
+                    <div class="tech-tags">
+                        ${c.skills_covered.map(t => `<span class="tech-tag">${t}</span>`).join('')}
+                    </div>
+                </div>
+            ` : ''}
+            <div class="certificate-dates">
+                <label>Dates</label>
+                <div class="certificate-meta">
+                    <span>Issued: ${c.issue_date}</span>
+                    ${c.expiry_date ? `<span>Expires: ${c.expiry_date}</span>` : '<span>No expiry</span>'}
+                </div>
+            </div>
+            ${c.credential_url ? `
+                <p style="margin-top: 1rem;">
+                    <a href="${c.credential_url}" target="_blank" class="project-link">Verify →</a>
+                </p>
+            ` : ''}
+            <div class="card-actions">
+                <button class="btn-delete" onclick="deleteCertificate(${c.id})">Delete</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Modal functions
+function openProjectModal() {
+    document.getElementById('project-modal').classList.add('active');
+}
+
+function closeProjectModal() {
+    document.getElementById('project-modal').classList.remove('active');
+    document.getElementById('project-form').reset();
+}
+
+function openCertificateModal() {
+    document.getElementById('certificate-modal').classList.add('active');
+}
+
+function closeCertificateModal() {
+    document.getElementById('certificate-modal').classList.remove('active');
+    document.getElementById('certificate-form').reset();
+}
+
+async function submitProject(e) {
+    e.preventDefault();
+    
+    const project = {
+        title: document.getElementById('project-title').value,
+        description: document.getElementById('project-description').value,
+        technologies: document.getElementById('project-technologies').value.split(',').map(t => t.trim()),
+        link: document.getElementById('project-link').value,
+        duration_months: parseInt(document.getElementById('project-duration').value) || 0,
+        completion_date: document.getElementById('project-completion-date').value,
+        impact: document.getElementById('project-impact').value
+    };
+    
+    try {
+        const res = await fetch(`${API}/projects`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(project)
+        });
+        
+        if (!res.ok) throw new Error('Failed to create project');
+        
+        closeProjectModal();
+        loadProjects();
+        showToast('Project added successfully!');
+    } catch (err) {
+        showToast('Failed to add project', 'error');
+        console.error(err);
+    }
+}
+
+async function submitCertificate(e) {
+    e.preventDefault();
+    
+    const cert = {
+        name: document.getElementById('cert-name').value,
+        issuer: document.getElementById('cert-issuer').value,
+        credential_id: document.getElementById('cert-credential-id').value,
+        credential_url: document.getElementById('cert-credential-url').value,
+        issue_date: document.getElementById('cert-issue-date').value,
+        expiry_date: document.getElementById('cert-expiry-date').value,
+        skills_covered: document.getElementById('cert-skills').value.split(',').map(s => s.trim())
+    };
+    
+    try {
+        const res = await fetch(`${API}/certificates`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(cert)
+        });
+        
+        if (!res.ok) throw new Error('Failed to create certificate');
+        
+        closeCertificateModal();
+        loadCertificates();
+        showToast('Certificate added successfully!');
+    } catch (err) {
+        showToast('Failed to add certificate', 'error');
+        console.error(err);
+    }
+}
+
+async function deleteProject(id) {
+    if (!confirm('Delete this project?')) return;
+    
+    try {
+        const res = await fetch(`${API}/projects/${id}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders()
+        });
+        
+        if (!res.ok) throw new Error('Failed to delete project');
+        loadProjects();
+        showToast('Project deleted');
+    } catch (err) {
+        showToast('Failed to delete project', 'error');
+    }
+}
+
+async function deleteCertificate(id) {
+    if (!confirm('Delete this certificate?')) return;
+    
+    try {
+        const res = await fetch(`${API}/certificates/${id}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders()
+        });
+        
+        if (!res.ok) throw new Error('Failed to delete certificate');
+        loadCertificates();
+        showToast('Certificate deleted');
+    } catch (err) {
+        showToast('Failed to delete certificate', 'error');
+    }
+}
+
+// ============================================
+// PHASE 5: USER PROFILE
+// ============================================
+
+async function loadProfile() {
+    if (!authToken) return;
+    
+    try {
+        const res = await fetch(`${API}/profile`, {
+            headers: getAuthHeaders()
+        });
+        
+        if (!res.ok) throw new Error('Failed to load profile');
+        
+        const data = await res.json();
+        populateProfileForm(data);
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+function populateProfileForm(profile) {
+    if (profile.headline) document.getElementById('profile-headline').value = profile.headline;
+    if (profile.bio) document.getElementById('profile-bio').value = profile.bio;
+    if (profile.location) document.getElementById('profile-location').value = profile.location;
+    if (profile.website) document.getElementById('profile-website').value = profile.website;
+    if (profile.github_url) document.getElementById('profile-github').value = profile.github_url;
+    if (profile.linkedin_url) document.getElementById('profile-linkedin').value = profile.linkedin_url;
+    if (profile.visibility) document.getElementById('profile-visibility').value = profile.visibility;
+}
+
+async function submitProfile(e) {
+    e.preventDefault();
+    
+    const profile = {
+        headline: document.getElementById('profile-headline').value,
+        bio: document.getElementById('profile-bio').value,
+        location: document.getElementById('profile-location').value,
+        website: document.getElementById('profile-website').value,
+        github_url: document.getElementById('profile-github').value,
+        linkedin_url: document.getElementById('profile-linkedin').value,
+        visibility: document.getElementById('profile-visibility').value
+    };
+    
+    try {
+        const res = await fetch(`${API}/profile`, {
+            method: 'PUT',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(profile)
+        });
+        
+        if (!res.ok) throw new Error('Failed to save profile');
+        
+        showToast('Profile updated successfully!');
+    } catch (err) {
+        showToast('Failed to save profile', 'error');
+        console.error(err);
+    }
+}
+
+async function generateProfessionalProfile() {
+    try {
+        const res = await fetch(`${API}/profile/professional`, {
+            headers: getAuthHeaders()
+        });
+        
+        if (!res.ok) throw new Error('Failed to generate profile');
+        
+        const data = await res.json();
+        displayProfessionalProfile(data);
+    } catch (err) {
+        showToast('Failed to generate profile', 'error');
+        console.error(err);
+    }
+}
+
+function displayProfessionalProfile(profile) {
+    const summaryEl = document.getElementById('professional-summary');
+    
+    let html = `
+        <div>
+            <h4>Summary</h4>
+            <p>${profile.summary}</p>
+            
+            <h4>Strength Areas</h4>
+            <ul>
+                ${(profile.strength_areas || []).map(a => `<li>${a}</li>`).join('')}
+            </ul>
+            
+            <h4>Growth Areas</h4>
+            <ul>
+                ${(profile.growth_areas || []).map(a => `<li>${a}</li>`).join('')}
+            </ul>
+            
+            <h4>Recommendations</h4>
+            <ul>
+                ${(profile.recommendations || []).map(r => `<li>${r}</li>`).join('')}
+            </ul>
+    `;
+    
+    if (profile.readiness_scores && Object.keys(profile.readiness_scores).length > 0) {
+        html += `
+            <h4>Readiness Scores</h4>
+            <ul>
+                ${Object.entries(profile.readiness_scores).map(([track, score]) => `<li>${track}: ${score}%</li>`).join('')}
+            </ul>
+        `;
+    }
+    
+    html += '</div>';
+    summaryEl.innerHTML = html;
+}
+
+// ============================================
+// TAB SWITCHING
+// ============================================
+
+function switchTab(tab) {
+    // Hide all tabs
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    
+    // Show selected tab
+    const tabEl = document.getElementById(`content-${tab}`);
+    const btnEl = document.getElementById(`tab-${tab}`);
+    if (tabEl) tabEl.classList.add('active');
+    if (btnEl) btnEl.classList.add('active');
+    
+    // Load data for tab
+    if (tab === 'dashboard') loadAnalytics();
+    else if (tab === 'readiness') loadCareerReadiness();
+    else if (tab === 'jobs') loadJobMatches();
+    else if (tab === 'skills') loadSkills();
+    else if (tab === 'portfolio') {
+        loadProjects();
+        loadCertificates();
+    } else if (tab === 'profile') loadProfile();
+}
+
+function switchPortfolioTab(tab) {
+    document.querySelectorAll('.portfolio-section').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.portfolio-tab-btn').forEach(el => el.classList.remove('active'));
+    
+    const sectionEl = document.getElementById(`portfolio-${tab}`);
+    const btnEl = event.currentTarget;
+    
+    if (sectionEl) sectionEl.classList.add('active');
+    if (btnEl) btnEl.classList.add('active');
+}
+
+// ============================================
+// INITIALIZE ON LOAD
+// ============================================
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (authToken) {
+        hideLoginPage();
+        loadDashboard();
+    } else {
+        showLoginPage();
+    }
+    
+    // Attach form handlers
+    if (document.getElementById('profile-form')) {
+        document.getElementById('profile-form').addEventListener('submit', submitProfile);
+    }
+    if (document.getElementById('project-form')) {
+        document.getElementById('project-form').addEventListener('submit', submitProject);
+    }
+    if (document.getElementById('certificate-form')) {
+        document.getElementById('certificate-form').addEventListener('submit', submitCertificate);
+    }
+});
