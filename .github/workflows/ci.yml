@@ -3,10 +3,21 @@ name: Ritvik's Production CI Workflow
 on:
   push:
     branches:
-      - main  
+      - main
+    paths-ignore:
+      - 'terraform/**'
+
+  workflow_run:
+    workflows:
+      - "Ritvik's Infrastructure Workflow"
+    types:
+      - completed
 
 jobs:
   build-and-ship:
+    if: |
+      github.event_name == 'push' ||
+      github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
 
     steps:
@@ -22,7 +33,6 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASS }}
 
-      # 1. Build and push backend
       - name: Build and Push Backend Image
         uses: docker/build-push-action@v6
         with:
@@ -32,12 +42,11 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/k8app-backend:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/k8app-backend:${{ github.sha }}
 
-      # 2. Building fornend image through nginx Dockerfile
       - name: Build and Push Nginx Gateway Image
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./nginx/Dockerfile  
+          file: ./nginx/Dockerfile
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/k8app-nginx:latest
