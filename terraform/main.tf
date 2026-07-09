@@ -22,7 +22,7 @@ module "compute" {
   key_name      = var.key_name
 
 
-  instance_name       = var.instance_name
-  security_group_name = var.security_group_name
+  instance_name            = var.instance_name
+  security_group_name      = var.security_group_name
   elastic_ip_allocation_id = var.elastic_ip_allocation_id
 }
