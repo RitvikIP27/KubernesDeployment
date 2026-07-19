@@ -156,7 +156,7 @@ postgres_data
 ```
 
 The database remains persistent even after container recreation and supports direct connections to Supabase for production.
-
+NOTE: Post migration to Supabase this docker Volumes is now Unnecessary
 ---
 
 # Docker Networking
